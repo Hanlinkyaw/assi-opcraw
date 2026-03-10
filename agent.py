@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 OpenClaw AI Agent - Telegram Bot for Web Crawling and Video Processing
+Version 1.0
 """
 
 import os
