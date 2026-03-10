@@ -40,6 +40,10 @@ class OpenClawAgent:
         self.openrouter_key = os.getenv("OPENROUTER_API_KEY")
         self.openrouter_model = os.getenv("OPENROUTER_MODEL", "google/gemini-pro")
         
+        # Debug logging
+        logger.info(f"OpenRouter API Key (first 10 chars): {self.openrouter_key[:10] if self.openrouter_key else 'None'}")
+        logger.info(f"OpenRouter Model: {self.openrouter_model}")
+        
         if not self.telegram_token:
             raise ValueError("TELEGRAM_BOT_TOKEN not found in environment variables")
         if not self.openrouter_key:
