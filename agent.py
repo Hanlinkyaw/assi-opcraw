@@ -12,7 +12,8 @@ from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 import openai
-from crawl4ai import AsyncWebCrawler
+import requests
+from bs4 import BeautifulSoup
 import edge_tts
 import moviepy.editor as mp
 from loguru import logger
@@ -91,41 +92,59 @@ https://youtube.com/watch?v=example
     async def process_website_url(self, url: str) -> str:
         """Crawl website and generate recap"""
         try:
-            async with AsyncWebCrawler() as crawler:
-                result = await crawler.arun(url)
-                content = result.markdown
+            # Use requests to fetch the webpage
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+            response = requests.get(url, headers=headers, timeout=10)
+            response.raise_for_status()
+            
+            # Parse with BeautifulSoup
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            # Extract text content
+            for script in soup(["script", "style"]):
+                script.extract()
                 
-                # Generate recap using OpenRouter
-                prompt = f"""
+            text = soup.get_text()
+            lines = (line.strip() for line in text.splitlines())
+            chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+            text = ' '.join(chunk for chunk in chunks if chunk)
+            
+            # Limit content length
+            content = text[:2000]
+                
+            # Generate recap using OpenRouter
+            prompt = f"""
 အောက်ပါ website အကြောင်းအရာကို မြန်မာဘာသာဖြင့် အကျဉ်းချုပ်ပေးပါ:
 
 URL: {url}
 
 အကြောင်းအရာ:
-{content[:2000]}  # Limit content length
+{content}
 
 အကျဉ်းချုပ်တွင် အဓိကအချက်များကို မြန်မာဘာသာဖြင့် ရေးပေးပါ။
-                """
+            """
                 
-                response = await openai.ChatCompletion.acreate(
-                    model=self.openrouter_model,
-                    messages=[
-                        {"role": "system", "content": "သင်သည် မြန်မာဘာသာဖြင့် အကျဉ်းချုပ်ရေးသားရန် ကျွမ်းကျင်သော AI ဖြစ်သည်။"},
-                        {"role": "user", "content": prompt}
-                    ],
-                    max_tokens=1000
-                )
+            response = await openai.ChatCompletion.acreate(
+                model=self.openrouter_model,
+                messages=[
+                    {"role": "system", "content": "သင်သည် မြန်မာဘာသာဖြင့် အကျဉ်းချုပ်ရေးသားရန် ကျွမ်းကျင်သော AI ဖြစ်သည်။"},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=1000
+            )
                 
-                recap = response.choices[0].message.content
+            recap = response.choices[0].message.content
                 
-                return f"""
+            return f"""
 🌐 Website အကျဉ်းချုပ်
 
 🔗 URL: {url}
 
 📝 အကျဉ်းချုပ်:
 {recap}
-                """
+            """
                 
         except Exception as e:
             logger.error(f"Error crawling website {url}: {str(e)}")
