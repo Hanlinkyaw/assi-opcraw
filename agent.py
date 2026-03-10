@@ -24,6 +24,12 @@ load_dotenv()
 # Configure logging
 logger.add("logs/openclaw.log", rotation="10 MB", level="INFO")
 
+# Initialize OpenAI client with OpenRouter
+openai_client = openai.OpenAI(
+    api_key=os.getenv("OPENROUTER_API_KEY"),
+    base_url="https://openrouter.ai/api/v1"
+)
+
 class OpenClawAgent:
     def __init__(self):
         self.telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -35,10 +41,6 @@ class OpenClawAgent:
         if not self.openrouter_key:
             raise ValueError("OPENROUTER_API_KEY not found in environment variables")
             
-        # Configure OpenAI for OpenRouter
-        openai.api_key = self.openrouter_key
-        openai.api_base = "https://openrouter.ai/api/v1"
-        
         logger.info("OpenClaw Agent initialized")
     
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -126,7 +128,7 @@ URL: {url}
 အကျဉ်းချုပ်တွင် အဓိကအချက်များကို မြန်မာဘာသာဖြင့် ရေးပေးပါ။
             """
                 
-            response = await openai.ChatCompletion.acreate(
+            response = openai_client.chat.completions.create(
                 model=self.openrouter_model,
                 messages=[
                     {"role": "system", "content": "သင်သည် မြန်မာဘာသာဖြင့် အကျဉ်းချုပ်ရေးသားရန် ကျွမ်းကျင်သော AI ဖြစ်သည်။"},
@@ -161,7 +163,7 @@ YouTube ဗီဒီယို URL: {url}
 ဗီဒီယို၏ အကြောင်းအရာကို ခန့်မှန်းပြီး မြန်မာဘာသာဖြင့် အကျဉ်းချုပ်တစ်ခု ရေးပေးပါ။
             """
             
-            response = await openai.ChatCompletion.acreate(
+            response = openai_client.chat.completions.create(
                 model=self.openrouter_model,
                 messages=[
                     {"role": "system", "content": "သင်သည် မြန်မာဘာသာဖြင့် ဗီဒီယိုအကျဉ်းချုပ်ရေးသားရန် ကျွမ်းကျင်သော AI ဖြစ်သည်။"},
