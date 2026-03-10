@@ -30,6 +30,10 @@ openai_client = openai.OpenAI(
     base_url="https://openrouter.ai/api/v1"
 )
 
+# Test if environment variables are loaded
+logger.info(f"OpenRouter API Key loaded: {bool(os.getenv('OPENROUTER_API_KEY'))}")
+logger.info(f"Telegram Bot Token loaded: {bool(os.getenv('TELEGRAM_BOT_TOKEN'))}")
+
 class OpenClawAgent:
     def __init__(self):
         self.telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")

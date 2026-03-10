@@ -7,6 +7,14 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL}
+      - APP_NAME=${APP_NAME}
+      - DEBUG=${DEBUG}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - SECRET_KEY=${SECRET_KEY}
     volumes:
       - ./logs:/app/logs
       - ./data:/app/data
