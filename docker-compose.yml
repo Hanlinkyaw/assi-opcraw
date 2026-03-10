@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  openclaw-agent:
+    build: .
+    container_name: openclaw-agent
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    networks:
+      - openclaw-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import telegram; print('OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  openclaw-network:
+    driver: bridge
